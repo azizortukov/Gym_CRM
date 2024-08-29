@@ -15,8 +15,8 @@ import java.util.UUID;
 public class Training {
 
     private UUID id;
-    private UUID traineeId;
-    private UUID trainerId;
+    private Trainee trainee;
+    private Trainer trainer;
     private String trainingName;
     private String trainingType;
     private LocalDate trainingDate;

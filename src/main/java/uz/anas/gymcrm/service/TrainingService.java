@@ -28,12 +28,7 @@ public class TrainingService {
     }
 
     public Training updateTraining(Training trainee) {
-        trainingDAO.save(trainee);
-        return trainee;
-    }
-
-    public void deleteTraining(Training trainee) {
-        trainingDAO.deleteById(trainee.getId());
+        return trainingDAO.save(trainee);
     }
 
     public void deleteById(UUID traineeId) {

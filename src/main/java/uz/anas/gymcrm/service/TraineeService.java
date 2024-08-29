@@ -43,10 +43,6 @@ public class TraineeService {
         return trainee;
     }
 
-    public void deleteTrainee(Trainee trainee) {
-        traineeDAO.deleteById(trainee.getId());
-    }
-
     public void deleteById(UUID traineeId) {
         traineeDAO.deleteById(traineeId);
     }

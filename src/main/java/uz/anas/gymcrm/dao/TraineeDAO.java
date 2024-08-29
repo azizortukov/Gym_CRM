@@ -38,6 +38,7 @@ public class TraineeDAO implements UserDao {
             trainees.remove(id);
         } else {
             log.warning("Trainee with id " + id + " not found");
+            throw new IllegalArgumentException("Trainee with id " + id + " not found");
         }
     }
 

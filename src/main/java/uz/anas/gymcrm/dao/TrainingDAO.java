@@ -29,6 +29,7 @@ public class TrainingDAO {
             trainings.remove(id);
         } else {
             log.warning("Training with id " + id + " not found");
+            throw new IllegalArgumentException("Training with id " + id + " not found");
         }
     }
 

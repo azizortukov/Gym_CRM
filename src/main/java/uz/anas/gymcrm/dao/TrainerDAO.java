@@ -38,15 +38,7 @@ public class TrainerDAO implements UserDao{
             trainers.remove(id);
         } else {
             log.warning("Trainer with id " + id + " not found");
-        }
-    }
-
-    public void deleteByUsername(String username) {
-        Optional<Trainer> trainerOptional = findByUsername(username);
-        if (trainerOptional.isPresent()) {
-            trainers.remove(trainerOptional.get().getId());
-        } else {
-            log.warning("Trainer with username: " + username + " not found");
+            throw new IllegalArgumentException("Trainer with id " + id + " not found");
         }
     }
 

@@ -1,19 +1,15 @@
 package uz.anas.gymcrm.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import uz.anas.gymcrm.entity.enums.Specialization;
 
-import java.util.UUID;
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Data
-public class Trainer {
+public class Trainer extends User {
 
-    private UUID id;
     private Specialization specialization;
-    private UUID userId;
 
 }

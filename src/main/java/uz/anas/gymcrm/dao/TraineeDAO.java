@@ -3,56 +3,55 @@ package uz.anas.gymcrm.dao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.anas.gymcrm.entity.Trainee;
-import uz.anas.gymcrm.entity.User;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Repository
 @RequiredArgsConstructor
-public class TraineeDAO {
+public class TraineeDAO implements UserDao {
 
     private final Map<UUID, Trainee> trainees = new HashMap<>();
-    private final UserDAO userDAO;
     private static final Logger log = Logger.getLogger(TraineeDAO.class.getName());
 
-    public void save(Trainee trainee) {
+    public Trainee save(Trainee trainee) {
+        trainee.setId(UUID.randomUUID());
         trainees.put(trainee.getId(), trainee);
+        return trainee;
     }
 
     public Optional<Trainee> findById(UUID id) {
-        Trainee trainee = trainees.get(id);
-        if (trainee == null) {
-            log.warning("Trainee with id: " + id + " not found");
-            return Optional.empty();
-        } else {
-            return Optional.of(trainee);
-        }
+        return Optional.ofNullable(trainees.get(id));
     }
 
     public Optional<Trainee> findByUsername(String username) {
-        Optional<User> user = userDAO.findByUsername(username);
-        if (user.isPresent()) {
-            Trainee trainee = trainees.get(user.get().getId());
-            return Optional.of(trainee);
+        for (Trainee trainee : trainees.values()) {
+            if (trainee.getUsername().equals(username)) {
+                return Optional.of(trainee);
+            }
         }
         return Optional.empty();
     }
 
     public void deleteById(UUID id) {
-        trainees.remove(id);
-    }
-
-    public void deleteByUsername(String username) {
-        Optional<User> user = userDAO.findByUsername(username);
-        if (user.isPresent()) {
-            trainees.remove(user.get().getId());
+        if (trainees.containsKey(id)) {
+            trainees.remove(id);
         } else {
-            log.warning("Trainee with username: " + username + " not found");
+            log.warning("Trainee with id " + id + " not found");
         }
     }
 
+    @Override
+    public boolean existsByUsername(String username) {
+        for (Trainee value : trainees.values()) {
+            if (value.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Trainee> findAll() {
+        return new ArrayList<>(trainees.values());
+    }
 }

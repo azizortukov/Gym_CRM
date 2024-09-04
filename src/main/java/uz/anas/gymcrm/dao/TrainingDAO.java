@@ -1,18 +1,22 @@
 package uz.anas.gymcrm.dao;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import uz.anas.gymcrm.entity.Training;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.logging.Logger;
 
 @Repository
-@RequiredArgsConstructor
 public class TrainingDAO {
 
-    private final Map<UUID, Training> trainings = new HashMap<>();
+    private Map<UUID, Training> trainings;
     private static final Logger log = Logger.getLogger(TraineeDAO.class.getName());
+
+    @PostConstruct
+    public void init() {
+        trainings = new HashMap<>();
+    }
 
     public Training save(Training training) {
         training.setId(UUID.randomUUID());

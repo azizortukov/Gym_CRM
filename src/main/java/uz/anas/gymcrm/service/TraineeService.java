@@ -1,51 +1,48 @@
 package uz.anas.gymcrm.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.anas.gymcrm.dao.TraineeDAO;
 import uz.anas.gymcrm.entity.Trainee;
+import uz.anas.gymcrm.repo.TraineeRepo;
+import uz.anas.gymcrm.repo.UserRepo;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class TraineeService {
 
-    @Autowired
-    private TraineeDAO traineeDAO;
-    @Autowired
-    private CredentialGenerator credentialGenerator;
+    private final TraineeRepo traineeRepo;
+    private final CredentialGenerator credentialGenerator;
+    private final UserRepo userRepo;
 
     public Trainee createTrainee(Trainee trainee) {
-        String username = trainee.getFirstName() + "." + trainee.getLastName();
-        if (traineeDAO.existsByUsername(username)) {
-            username = credentialGenerator.genUsername(username, traineeDAO);
+        String username = trainee.getUser().getUsername() + "." + trainee.getUser().getLastName();
+        if (userRepo.existsByUsername(username)) {
+            username = credentialGenerator.genUsername(username);
         }
-        trainee.setUsername(username);
-        trainee.setPassword(credentialGenerator.genPassword());
-        return traineeDAO.save(trainee);
+        trainee.getUser().setUsername(username);
+        trainee.getUser().setPassword(credentialGenerator.genPassword());
+        return traineeRepo.save(trainee);
     }
 
     public List<Trainee> getAllTrainees() {
-        return traineeDAO.findAll();
-    }
-
-    public Optional<Trainee> getTraineeById(UUID id) {
-        return traineeDAO.findById(id);
+        return traineeRepo.findAll();
     }
 
     public Optional<Trainee> getTraineeByUsername(String username) {
-        return traineeDAO.findByUsername(username);
+        return traineeRepo.findByUsername(username);
     }
 
     public Trainee updateTrainee(Trainee trainee) {
-        traineeDAO.save(trainee);
+        traineeRepo.save(trainee);
         return trainee;
     }
 
     public void deleteById(UUID traineeId) {
-        traineeDAO.deleteById(traineeId);
+        traineeRepo.deleteById(traineeId);
     }
 
 }

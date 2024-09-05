@@ -1,7 +1,7 @@
 package uz.anas.gymcrm.service;
 
 import org.springframework.stereotype.Service;
-import uz.anas.gymcrm.dao.UserDao;
+import uz.anas.gymcrm.repo.UserRepo;
 
 import java.security.SecureRandom;
 import java.util.Random;
@@ -12,6 +12,7 @@ public class CredentialGenerator {
     private final Random random = new Random();
     private final SecureRandom secureRandom = new SecureRandom();
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+<>?";
+    private final UserRepo userRepo;
 
 
     public String genPassword() {
@@ -23,11 +24,11 @@ public class CredentialGenerator {
         return password.toString();
     }
 
-    public String genUsername(String username, UserDao userDao) {
+    public String genUsername(String username) {
         int serialNumber = secureRandom.nextInt(10, 1000000);
         String resUsername = username + serialNumber;
-        if (userDao.existsByUsername(resUsername)) {
-            return genUsername(username, userDao);
+        if (userRepo.existsByUsername(resUsername)) {
+            return genUsername(username);
         }
         return resUsername;
     }

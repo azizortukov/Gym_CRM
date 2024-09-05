@@ -1,38 +1,39 @@
 package uz.anas.gymcrm.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uz.anas.gymcrm.dao.TrainingDAO;
 import uz.anas.gymcrm.entity.Training;
+import uz.anas.gymcrm.repo.TrainingRepo;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class TrainingService {
 
-    @Autowired
-    private TrainingDAO trainingDAO;
+
+    private final TrainingRepo trainingRepo;
 
     public Training createTraining(Training training) {
-        return trainingDAO.save(training);
+        return trainingRepo.save(training);
     }
 
     public List<Training> getAllTrainings() {
-        return trainingDAO.findAll();
+        return trainingRepo.findAll();
     }
 
     public Optional<Training> getTrainingById(UUID id) {
-        return trainingDAO.findById(id);
+        return trainingRepo.findById(id);
     }
 
     public Training updateTraining(Training trainee) {
-        return trainingDAO.save(trainee);
+        return trainingRepo.save(trainee);
     }
 
     public void deleteById(UUID traineeId) {
-        trainingDAO.deleteById(traineeId);
+        trainingRepo.deleteById(traineeId);
     }
 
 }

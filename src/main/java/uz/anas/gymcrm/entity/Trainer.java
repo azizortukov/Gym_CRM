@@ -1,18 +1,29 @@
 package uz.anas.gymcrm.entity;
 
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import uz.anas.gymcrm.entity.enums.Specialization;
 
-@EqualsAndHashCode(callSuper = true)
+import java.util.UUID;
+
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
-@Getter
-@Setter
-@ToString(callSuper = true)
-public class Trainer extends User {
+@Builder
+@Data
+@Entity
+@Table(name = "trainer")
+public class Trainer {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    @Enumerated(EnumType.STRING)
     private Specialization specialization;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

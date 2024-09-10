@@ -1,6 +1,6 @@
 package uz.anas.gymcrm.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.dao.TrainingDAO;
 import uz.anas.gymcrm.entity.Training;
@@ -10,10 +10,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class TrainingService {
 
-    private final TrainingDAO trainingDAO;
+    @Autowired
+    private TrainingDAO trainingDAO;
 
     public Training createTraining(Training training) {
         return trainingDAO.save(training);

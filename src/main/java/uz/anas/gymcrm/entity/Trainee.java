@@ -9,10 +9,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
 public class Trainee extends User {
 
     private LocalDate dateOfBirth;
-    private Address address;
+    private String address;
 
 }

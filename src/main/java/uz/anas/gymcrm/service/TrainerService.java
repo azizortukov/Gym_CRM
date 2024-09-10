@@ -1,6 +1,6 @@
 package uz.anas.gymcrm.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.dao.TrainerDAO;
 import uz.anas.gymcrm.entity.Trainer;
@@ -10,11 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class TrainerService {
 
-    private final TrainerDAO trainerDAO;
-    private final CredentialGenerator credentialGenerator;
+    @Autowired
+    private TrainerDAO trainerDAO;
+    @Autowired
+    private CredentialGenerator credentialGenerator;
 
     public Trainer createTrainer(Trainer trainer) {
         String username = trainer.getFirstName() + "." + trainer.getLastName();

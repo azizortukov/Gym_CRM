@@ -8,7 +8,9 @@ import uz.anas.gymcrm.entity.enums.Specialization;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
 public class Trainer extends User {
 
     private Specialization specialization;

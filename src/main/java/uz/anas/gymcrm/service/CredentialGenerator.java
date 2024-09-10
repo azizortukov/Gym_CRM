@@ -1,6 +1,5 @@
 package uz.anas.gymcrm.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.dao.UserDao;
 
@@ -8,7 +7,6 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 @Service
-@RequiredArgsConstructor
 public class CredentialGenerator {
 
     private final Random random = new Random();

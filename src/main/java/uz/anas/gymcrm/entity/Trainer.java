@@ -1,6 +1,7 @@
 package uz.anas.gymcrm.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,11 +20,13 @@ public class Trainer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @NotNull
     private UUID id;
     @Enumerated(EnumType.STRING)
+    @NotNull
     private Specialization specialization;
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @NotNull
     private User user;
 
 }

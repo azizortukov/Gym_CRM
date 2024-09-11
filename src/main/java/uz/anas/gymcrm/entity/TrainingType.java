@@ -1,9 +1,8 @@
 package uz.anas.gymcrm.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -18,6 +17,7 @@ public class TrainingType {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(nullable = false, name = "training_type_name")
+    @NotEmpty
     private String trainingTypeName;
 
 }

@@ -25,7 +25,7 @@ public class Trainer {
     @Enumerated(EnumType.STRING)
     @NotNull
     private Specialization specialization;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @NotNull
     private User user;
 

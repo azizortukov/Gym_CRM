@@ -48,4 +48,8 @@ public class TrainerRepo {
         return trainer != null;
     }
 
+    public List<Trainer> findAll() {
+        String jpql = "from Trainer t";
+        return em.createQuery(jpql, Trainer.class).getResultList();
+    }
 }

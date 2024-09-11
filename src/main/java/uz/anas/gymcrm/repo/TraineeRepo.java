@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.entity.Trainee;
 import uz.anas.gymcrm.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -48,4 +49,8 @@ public class TraineeRepo {
     }
 
 
+    public List<Trainee> findAll() {
+        String jpql = "from Trainee t";
+        return em.createQuery(jpql, Trainee.class).getResultList();
+    }
 }

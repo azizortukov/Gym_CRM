@@ -9,9 +9,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.entity.Trainer;
 import uz.anas.gymcrm.entity.User;
+import uz.anas.gymcrm.entity.enums.Specialization;
 import uz.anas.gymcrm.repo.TrainerRepo;
 import uz.anas.gymcrm.repo.UserRepo;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +29,31 @@ public class TrainerService {
     private final CredentialGenerator credentialGenerator;
     private final UserRepo userRepo;
     private final Log log = LogFactory.getLog(TrainerService.class);
+
+    @PostConstruct
+    public void init() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("src/main/resources/trainer-data.csv").toFile()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                User user = User.builder()
+                        .firstName(parts[0])
+                        .lastName(parts[1])
+                        .username(parts[2])
+                        .password(parts[3])
+                        .isActive(Boolean.parseBoolean(parts[4]))
+                        .build();
+
+                Trainer trainer = Trainer.builder()
+                        .user(user)
+                        .specialization(Specialization.AEROBICS)
+                        .build();
+                trainerRepo.save(trainer);
+            }
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+        }
+    }
 
     public Trainer createTrainer(@Valid Trainer trainer) {
         String username = trainer.getUser().getFirstName() + "." + trainer.getUser().getLastName();
@@ -93,4 +124,7 @@ public class TrainerService {
         return trainerRepo.findByTraineeUsernameNotAssigned(traineeUsername);
     }
 
+    public List<Trainer> getAllTrainers() {
+        return trainerRepo.findAll();
+    }
 }

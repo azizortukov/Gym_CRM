@@ -25,7 +25,7 @@ public class Trainee {
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
     private String address;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 

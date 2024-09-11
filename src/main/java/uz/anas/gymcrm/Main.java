@@ -2,8 +2,6 @@ package uz.anas.gymcrm;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import uz.anas.gymcrm.config.AppConfig;
-import uz.anas.gymcrm.dao.TraineeDAO;
-import uz.anas.gymcrm.dao.TrainerDAO;
 import uz.anas.gymcrm.service.TraineeService;
 import uz.anas.gymcrm.service.TrainerService;
 

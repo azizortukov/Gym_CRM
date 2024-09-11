@@ -12,6 +12,13 @@ import uz.anas.gymcrm.entity.User;
 import uz.anas.gymcrm.repo.TraineeRepo;
 import uz.anas.gymcrm.repo.UserRepo;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.sql.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,6 +29,31 @@ public class TraineeService {
     private final CredentialGenerator credentialGenerator;
     private final UserRepo userRepo;
     private final Log log = LogFactory.getLog(TraineeService.class);
+
+    @PostConstruct
+    public void init() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("src/main/resources/trainee-data.csv").toFile()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                User user = User.builder()
+                        .firstName(parts[0])
+                        .lastName(parts[1])
+                        .username(parts[2])
+                        .password(parts[3])
+                        .isActive(Boolean.parseBoolean(parts[4]))
+                        .build();
+                Trainee trainee = Trainee.builder()
+                        .user(user)
+                        .dateOfBirth(Date.valueOf(parts[5]))
+                        .address(parts[6])
+                        .build();
+                traineeRepo.save(trainee);
+            }
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+        }
+    }
 
     @Transactional
     public Trainee createTrainee(@Valid Trainee trainee) {
@@ -94,4 +126,7 @@ public class TraineeService {
         traineeRepo.deleteByUsername(username);
     }
 
+    public List<Trainee> getAllTrainees() {
+        return traineeRepo.findAll();
+    }
 }

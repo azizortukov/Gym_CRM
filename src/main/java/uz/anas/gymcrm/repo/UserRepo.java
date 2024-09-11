@@ -21,9 +21,18 @@ public class UserRepo {
     }
 
     public boolean existsByUsername(String username) {
-        String jpql = "SELECT t FROM User t WHERE t.username = :username";
+        String jpql = "from User t where t.username = :username";
         TypedQuery<User> query = em.createQuery(jpql, User.class);
         query.setParameter("username", username);
         return query.getSingleResult() != null;
+    }
+
+    public boolean isAuthenticated(User user) {
+        String jpql = "from User t where t.username = :username and t.password = :password";
+        TypedQuery<User> query = em.createQuery(jpql, User.class);
+        query.setParameter("username", user.getUsername());
+        query.setParameter("password", user.getPassword());
+        User singleResult = query.getSingleResult();
+        return singleResult != null;
     }
 }

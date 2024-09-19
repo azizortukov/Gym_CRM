@@ -2,17 +2,16 @@ package uz.anas.gymcrm.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.sql.Date;
-import java.util.UUID;
+import java.util.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @Entity
 @Table(name = "trainee")
@@ -28,5 +27,13 @@ public class Trainee {
     @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
+    @ManyToMany
+    @JoinTable(name = "trainee_trainer", joinColumns = @JoinColumn(name = "trainee_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id"))
+    @ToString.Exclude
+    private Set<Trainer> trainers = new HashSet<>();
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Training> trainings = new ArrayList<>();
 
 }

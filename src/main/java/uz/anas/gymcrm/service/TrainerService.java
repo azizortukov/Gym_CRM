@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.entity.Trainer;
@@ -14,10 +15,6 @@ import uz.anas.gymcrm.repo.TrainerRepo;
 import uz.anas.gymcrm.repo.UserRepo;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,29 +26,26 @@ public class TrainerService {
     private final CredentialGenerator credentialGenerator;
     private final UserRepo userRepo;
     private final Log log = LogFactory.getLog(TrainerService.class);
+    @Value("${trainer.data}")
+    private List<String> trainerData;
 
     @PostConstruct
     public void init() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("src/main/resources/trainer-data.csv").toFile()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                User user = User.builder()
-                        .firstName(parts[0])
-                        .lastName(parts[1])
-                        .username(parts[2])
-                        .password(parts[3])
-                        .isActive(Boolean.parseBoolean(parts[4]))
-                        .build();
+        for (String line : trainerData) {
+            String[] parts = line.split(",");
+            User user = User.builder()
+                    .firstName(parts[0])
+                    .lastName(parts[1])
+                    .username(parts[2])
+                    .password(parts[3])
+                    .isActive(Boolean.parseBoolean(parts[4]))
+                    .build();
 
-                Trainer trainer = Trainer.builder()
-                        .user(user)
-                        .specialization(Specialization.AEROBICS)
-                        .build();
-                trainerRepo.save(trainer);
-            }
-        } catch (IOException e) {
-            log.warn(e.getMessage());
+            Trainer trainer = Trainer.builder()
+                    .user(user)
+                    .specialization(Specialization.AEROBICS)
+                    .build();
+            trainerRepo.save(trainer);
         }
     }
 

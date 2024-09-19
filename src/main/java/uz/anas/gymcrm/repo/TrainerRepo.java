@@ -1,6 +1,7 @@
 package uz.anas.gymcrm.repo;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -26,12 +27,16 @@ public class TrainerRepo {
     }
 
     public Optional<Trainer> findByUsername(String username) {
-        String jpql = "from Trainer t where t.user.username = :username";
-        Trainer trainer = em.createQuery(jpql, Trainer.class)
-                .setParameter("username", username)
-                .getSingleResult();
+        try {
+            String jpql = "from Trainer t where t.user.username = :username";
+            Trainer trainer = em.createQuery(jpql, Trainer.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            return Optional.ofNullable(trainer);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
 
-        return Optional.ofNullable(trainer);
     }
 
     public List<Trainer> findByTraineeUsernameNotAssigned(String traineeUsername) {
@@ -40,12 +45,16 @@ public class TrainerRepo {
     }
 
     public boolean isAuthenticated(@NotNull User user) {
-        String jpql = "from Trainer t where t.user.username = :username";
-        Trainer trainer = em.createQuery(jpql, Trainer.class)
-                .setParameter("username", user.getUsername())
-                .getSingleResult();
+        try {
+            String jpql = "from Trainer t where t.user.username = :username";
+            Trainer trainer = em.createQuery(jpql, Trainer.class)
+                    .setParameter("username", user.getUsername())
+                    .getSingleResult();
+            return trainer != null;
+        } catch (NoResultException e) {
+            return false;
+        }
 
-        return trainer != null;
     }
 
     public List<Trainer> findAll() {

@@ -1,6 +1,7 @@
 package uz.anas.gymcrm.repo;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
@@ -21,18 +22,26 @@ public class UserRepo {
     }
 
     public boolean existsByUsername(String username) {
-        String jpql = "from User t where t.username = :username";
-        TypedQuery<User> query = em.createQuery(jpql, User.class);
-        query.setParameter("username", username);
-        return query.getSingleResult() != null;
+        try {
+            String jpql = "from User t where t.username = :username";
+            TypedQuery<User> query = em.createQuery(jpql, User.class);
+            query.setParameter("username", username);
+            return query.getSingleResult() != null;
+        } catch (NoResultException e) {
+            return false;
+        }
     }
 
     public boolean isAuthenticated(User user) {
-        String jpql = "from User t where t.username = :username and t.password = :password";
-        TypedQuery<User> query = em.createQuery(jpql, User.class);
-        query.setParameter("username", user.getUsername());
-        query.setParameter("password", user.getPassword());
-        User singleResult = query.getSingleResult();
-        return singleResult != null;
+        try {
+            String jpql = "from User t where t.username = :username and t.password = :password";
+            TypedQuery<User> query = em.createQuery(jpql, User.class);
+            query.setParameter("username", user.getUsername());
+            query.setParameter("password", user.getPassword());
+            User singleResult = query.getSingleResult();
+            return singleResult != null;
+        } catch (NoResultException e) {
+            return false;
+        }
     }
 }

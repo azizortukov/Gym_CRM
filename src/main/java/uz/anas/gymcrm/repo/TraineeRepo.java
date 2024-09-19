@@ -1,6 +1,7 @@
 package uz.anas.gymcrm.repo;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Repository;
@@ -25,12 +26,16 @@ public class TraineeRepo {
     }
 
     public Optional<Trainee> findByUsername(String username) {
-        String jpql = "from Trainee t where t.user.username = :username";
-        Trainee trainee = em.createQuery(jpql, Trainee.class)
-                .setParameter("username", username)
-                .getSingleResult();
+        try {
+            String jpql = "from Trainee t where t.user.username = :username";
+            Trainee trainee = em.createQuery(jpql, Trainee.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
 
-        return Optional.ofNullable(trainee);
+            return Optional.ofNullable(trainee);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     public void deleteByUsername(String username) {
@@ -40,12 +45,16 @@ public class TraineeRepo {
     }
 
     public boolean isAuthenticated(@NotNull User user) {
-        String jpql = "from Trainee t where t.user.username = :username";
-        Trainee trainee = em.createQuery(jpql, Trainee.class)
-                .setParameter("username", user.getUsername())
-                .getSingleResult();
+        try {
+            String jpql = "from Trainee t where t.user.username = :username";
+            Trainee trainee = em.createQuery(jpql, Trainee.class)
+                    .setParameter("username", user.getUsername())
+                    .getSingleResult();
 
-        return trainee != null;
+            return trainee != null;
+        } catch (NoResultException e) {
+            return false;
+        }
     }
 
 

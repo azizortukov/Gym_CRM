@@ -2,18 +2,17 @@ package uz.anas.gymcrm.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import uz.anas.gymcrm.entity.enums.Specialization;
 
-import java.util.UUID;
+import java.util.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "trainer")
 public class Trainer {
@@ -28,5 +27,11 @@ public class Trainer {
     @OneToOne(cascade = CascadeType.PERSIST)
     @NotNull
     private User user;
+    @ManyToMany(mappedBy = "trainers")
+    @ToString.Exclude
+    private Set<Trainee> trainees = new HashSet<>();
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Training> trainings = new ArrayList<>();
 
 }

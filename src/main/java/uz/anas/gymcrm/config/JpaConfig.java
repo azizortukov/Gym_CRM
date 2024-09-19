@@ -1,6 +1,7 @@
 package uz.anas.gymcrm.config;
 
 import jakarta.persistence.EntityManagerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -14,13 +15,27 @@ import java.util.Properties;
 @Configuration
 public class JpaConfig {
 
+    @Value("${datasource.driver}")
+    private String driverClassName;
+    @Value("${datasource.url}")
+    private String url;
+    @Value("${datasource.username}")
+    private String username;
+    @Value("${datasource.password}")
+    private String password;
+    @Value("${datasource.ddl}")
+    private String hibernateHbm2ddlAuto;
+    @Value("${datasource.dialect}")
+    private String hibernateDialect;
+
     @Bean
     public DataSource dataSource() {
+        System.out.println(driverClassName);
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://localhost:5432/gym_crm");
-        dataSource.setUsername("postgres");
-        dataSource.setPassword("root123");
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
         return dataSource;
     }
 
@@ -34,8 +49,8 @@ public class JpaConfig {
         em.setJpaVendorAdapter(vendorAdapter);
 
         Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", "create");
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        properties.setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto);
+        properties.setProperty("hibernate.dialect", hibernateDialect);
 
         em.setJpaProperties(properties);
 

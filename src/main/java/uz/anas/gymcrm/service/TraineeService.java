@@ -29,11 +29,11 @@ public class TraineeService {
     private final UserRepo userRepo;
     private final Log log = LogFactory.getLog(TraineeService.class);
     @Value("${trainee.data}")
-    private List<String> traineeData;
+    private String traineeData;
 
     @PostConstruct
     public void init() {
-        for (String line : traineeData) {
+        for (String line : traineeData.split(";")) {
             String[] parts = line.split(",");
             User user = User.builder()
                     .firstName(parts[0])

@@ -27,11 +27,11 @@ public class TrainerService {
     private final UserRepo userRepo;
     private final Log log = LogFactory.getLog(TrainerService.class);
     @Value("${trainer.data}")
-    private List<String> trainerData;
+    private String trainerData;
 
     @PostConstruct
     public void init() {
-        for (String line : trainerData) {
+        for (String line : trainerData.split(";")) {
             String[] parts = line.split(",");
             User user = User.builder()
                     .firstName(parts[0])

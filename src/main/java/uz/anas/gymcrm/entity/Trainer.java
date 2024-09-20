@@ -19,7 +19,6 @@ public class Trainer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @NotNull
     private UUID id;
     @Enumerated(EnumType.STRING)
     @NotNull

@@ -69,7 +69,7 @@ public class TraineeService {
     public Optional<Trainee> getTraineeByUsername(@NotNull User authentication, String username) {
         if (!traineeRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            return Optional.empty();
+            throw new RuntimeException("Request sent without authentication");
         }
         return traineeRepo.findByUsername(username);
     }
@@ -78,11 +78,12 @@ public class TraineeService {
     public void changePasswordByUsername(@NotNull User authentication, String username, String newPassword) {
         if (!traineeRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
+            throw new RuntimeException("Request sent without authentication");
         }
         traineeRepo.findByUsername(username).ifPresent(trainee -> {
             User user = trainee.getUser();
             if (user != null) {
-                user.setPassword(credentialGenerator.genPassword());
+                user.setPassword(newPassword);
                 userRepo.save(user);
             } else {
                 log.warn("Trainee with id: " + trainee.getId() + " user not found");
@@ -106,6 +107,7 @@ public class TraineeService {
     public void activateTraineeByUsername(@NotNull User authentication, String username) {
         if (!traineeRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
+            throw new RuntimeException("User is not authenticated");
         }
         traineeRepo.findByUsername(username).ifPresent(trainee -> {
             User user = trainee.getUser();
@@ -123,6 +125,7 @@ public class TraineeService {
     public void deleteByUsername(@NotNull User authentication, String username) {
         if (!traineeRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
+            throw new RuntimeException("User is not authenticated");
         }
         traineeRepo.deleteByUsername(username);
     }

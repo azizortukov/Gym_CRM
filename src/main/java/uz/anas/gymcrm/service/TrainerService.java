@@ -67,6 +67,7 @@ public class TrainerService {
         return trainerRepo.findByUsername(username);
     }
 
+    @Transactional
     public void changePasswordByUsername(@NotNull User authentication, String username, String newPassword) {
         if (!trainerRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
@@ -83,18 +84,7 @@ public class TrainerService {
         });
     }
 
-    @Transactional
-    public Trainer updateTrainer(@NotNull User user, @Valid Trainer trainer) {
-        if (!trainerRepo.isAuthenticated(user)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
-        }
-
-        trainerRepo.save(trainer);
-        return trainer;
-    }
-
-    public void activateTraineeByUsername(@NotNull User authentication, String username, boolean isActive) {
+    public void activateTrainerByUsername(@NotNull User authentication, String username, boolean isActive) {
         if (!trainerRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");

@@ -1,17 +1,16 @@
-package uz.anas.gymcrm.entity;
+package uz.anas.gymcrm.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @Entity
 @Table(name = "users")
@@ -21,13 +20,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @Column(nullable = false, name = "first_name")
-    @NotEmpty
+    @NotEmpty(message = "First name cannot be empty")
     private String firstName;
     @Column(nullable = false, name = "last_name")
-    @NotEmpty
+    @NotEmpty(message = "Last name cannot be empty")
     private String lastName;
-    @Column(nullable = false)
-    @NotEmpty
+    @Column(nullable = false, unique = true)
     private String username;
     @Column(nullable = false)
     @NotEmpty
@@ -35,4 +33,7 @@ public class User {
     @Column(nullable = false, name = "is_active")
     private boolean isActive;
 
+    public boolean getIsActive() {
+        return isActive;
+    }
 }

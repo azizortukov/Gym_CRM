@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
-import uz.anas.gymcrm.entity.Training;
-import uz.anas.gymcrm.entity.User;
-import uz.anas.gymcrm.repo.TrainingRepo;
-import uz.anas.gymcrm.repo.UserRepo;
+import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.entity.Training;
+import uz.anas.gymcrm.repository.TrainingRepository;
+import uz.anas.gymcrm.repository.UserRepository;
 
 import java.util.Date;
 import java.util.List;
@@ -18,11 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TrainingService {
 
-    private final TrainingRepo trainingRepo;
-    private final UserRepo userRepo;
+    private final TrainingRepository trainingRepo;
+    private final UserRepository userRepo;
     private final Log log = LogFactory.getLog(TrainingService.class.getName());
 
-    public Training createTraining(@NotNull User authentication, @Valid Training training) {
+    public Training createTraining(@NotNull Authentication authentication, @Valid Training training) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
@@ -31,7 +31,7 @@ public class TrainingService {
     }
 
     public List<Training> getTraineeTrainings(
-            @NotNull User authentication , @NotNull String traineeUsername, String trainerUsername,
+            @NotNull Authentication authentication , @NotNull String traineeUsername, String trainerUsername,
             Date fromDate, Date toDate, String trainingType) {
 
         if (!userRepo.isAuthenticated(authentication)) {
@@ -42,7 +42,7 @@ public class TrainingService {
     }
 
     public List<Training> getTrainerTrainings(
-            @NotNull User authentication , @NotNull String trainerUsername, String traineeUsername,
+            @NotNull Authentication authentication , @NotNull String trainerUsername, String traineeUsername,
             Date fromDate, Date toDate) {
 
         if (!userRepo.isAuthenticated(authentication)) {

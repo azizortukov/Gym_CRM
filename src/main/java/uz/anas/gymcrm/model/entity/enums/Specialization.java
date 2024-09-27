@@ -1,4 +1,4 @@
-package uz.anas.gymcrm.entity.enums;
+package uz.anas.gymcrm.model.entity.enums;
 
 public enum Specialization {
     STRENGTH_TRAINING,

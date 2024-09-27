@@ -1,23 +1,21 @@
 package uz.anas.gymcrm.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uz.anas.gymcrm.entity.Trainer;
-import uz.anas.gymcrm.entity.User;
-import uz.anas.gymcrm.entity.enums.Specialization;
-import uz.anas.gymcrm.repo.TrainerRepo;
-import uz.anas.gymcrm.repo.UserRepo;
+import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.entity.Trainer;
+import uz.anas.gymcrm.model.entity.User;
+import uz.anas.gymcrm.model.entity.enums.Specialization;
+import uz.anas.gymcrm.repository.TrainerRepository;
+import uz.anas.gymcrm.repository.UserRepository;
 
-import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,33 +23,30 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TrainerService {
 
-    private final TrainerRepo trainerRepo;
+    private final TrainerRepository trainerRepo;
     private final CredentialGenerator credentialGenerator;
-    private final UserRepo userRepo;
+    private final UserRepository userRepo;
     private final Log log = LogFactory.getLog(TrainerService.class);
+    @Value("${trainer.data}")
+    private String trainerData;
 
     @PostConstruct
     public void init() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("src/main/resources/trainer-data.csv").toFile()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                User user = User.builder()
-                        .firstName(parts[0])
-                        .lastName(parts[1])
-                        .username(parts[2])
-                        .password(parts[3])
-                        .isActive(Boolean.parseBoolean(parts[4]))
-                        .build();
+        for (String line : trainerData.split(";")) {
+            String[] parts = line.split(",");
+            User user = User.builder()
+                    .firstName(parts[0])
+                    .lastName(parts[1])
+                    .username(parts[2])
+                    .password(parts[3])
+                    .isActive(Boolean.parseBoolean(parts[4]))
+                    .build();
 
-                Trainer trainer = Trainer.builder()
-                        .user(user)
-                        .specialization(Specialization.AEROBICS)
-                        .build();
-                trainerRepo.save(trainer);
-            }
-        } catch (IOException e) {
-            log.warn(e.getMessage());
+            Trainer trainer = Trainer.builder()
+                    .user(user)
+                    .specialization(Specialization.AEROBICS)
+                    .build();
+            trainerRepo.save(trainer);
         }
     }
 
@@ -65,20 +60,21 @@ public class TrainerService {
         return trainerRepo.save(trainer);
     }
 
-    public Optional<Trainer> getTrainerByUsername(@NotNull User authentication, String username) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
+    public Optional<Trainer> getTrainerByUsername(@NotNull Authentication authentication, String username) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }
-        return trainerRepo.findByUsername(username);
+        return trainerRepo.findByUserUsername(username);
     }
 
-    public void changePasswordByUsername(@NotNull User authentication, String username, String newPassword) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
+    @Transactional
+    public void changePasswordByUsername(@NotNull Authentication authentication, String username, String newPassword) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }
-        trainerRepo.findByUsername(username).ifPresent(trainer -> {
+        trainerRepo.findByUserUsername(username).ifPresent(trainer -> {
             User user = trainer.getUser();
             if (user != null) {
                 user.setPassword(newPassword);
@@ -89,23 +85,12 @@ public class TrainerService {
         });
     }
 
-    @Transactional
-    public Trainer updateTrainer(@NotNull User user, @Valid Trainer trainer) {
-        if (!trainerRepo.isAuthenticated(user)) {
+    public void activateTrainerByUsername(@NotNull Authentication authentication, String username, boolean isActive) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }
-
-        trainerRepo.save(trainer);
-        return trainer;
-    }
-
-    public void activateTraineeByUsername(@NotNull User authentication, String username, boolean isActive) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
-        }
-        trainerRepo.findByUsername(username).ifPresent(trainer -> {
+        trainerRepo.findByUserUsername(username).ifPresent(trainer -> {
             User user = trainer.getUser();
             if (user != null) {
                 user.setActive(isActive);
@@ -116,8 +101,8 @@ public class TrainerService {
         });
     }
 
-    public List<Trainer> getTrainersByNotAssigned(@NotNull User authentication, String traineeUsername) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
+    public List<Trainer> getTrainersByNotAssigned(@NotNull Authentication authentication, String traineeUsername) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }

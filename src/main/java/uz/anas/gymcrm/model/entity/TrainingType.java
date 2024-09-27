@@ -1,4 +1,4 @@
-package uz.anas.gymcrm.entity;
+package uz.anas.gymcrm.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -8,7 +8,9 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "training_type")
 public class TrainingType {

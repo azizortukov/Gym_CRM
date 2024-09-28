@@ -1,28 +1,41 @@
 package uz.anas.gymcrm.model.mapper;
 
 import org.mapstruct.*;
-import uz.anas.gymcrm.model.dto.TraineePartialDto;
+import uz.anas.gymcrm.model.dto.get.GetTraineeDto;
+import uz.anas.gymcrm.model.dto.post.PostTraineeDto;
+import uz.anas.gymcrm.model.dto.put.PutTraineeDto;
 import uz.anas.gymcrm.model.entity.Trainee;
-import uz.anas.gymcrm.model.dto.TraineeDto;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.CDI)
 public interface TraineeMapper {
 
-    @Mapping(source = "password", target = "user.password")
+    @InheritInverseConfiguration(name = "toGetDto")
+    Trainee toEntity(GetTraineeDto getTraineeDto);
+
+    @Mapping(source = "trainers.user.firstName", target = "trainersList.firstName")
+    @Mapping(source = "trainers.user.lastName", target = "trainersList.lastName")
+    @Mapping(source = "trainers.user.username", target = "trainersList.username")
+    @Mapping(source = "trainers.specialization", target = "trainersList.specialization")
+    @Mapping(source = "user.isActive", target = "isActive")
+    @Mapping(source = "user.lastName", target = "lastName")
+    @Mapping(source = "user.firstName", target = "firstName")
+    GetTraineeDto toGetDto(Trainee trainee);
+
+    @InheritInverseConfiguration(name = "toPostDto")
+    Trainee toEntity(PostTraineeDto traineeDto);
+
+    @Mapping(source = "user.password", target = "password")
+    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.lastName", target = "lastName")
+    @Mapping(source = "user.firstName", target = "firstName")
+    PostTraineeDto toPostDto(Trainee trainee);
+
+    @InheritInverseConfiguration(name = "toPutDto")
     @Mapping(source = "username", target = "user.username")
-    @Mapping(source = "lastName", target = "user.lastName")
-    @Mapping(source = "firstName", target = "user.firstName")
-    Trainee toEntityPartialDto(TraineePartialDto traineeDto);
+    Trainee toEntity(PutTraineeDto traineeDto);
 
-    @InheritInverseConfiguration(name = "toEntityPartialDto")
-    TraineePartialDto toPartialDto(Trainee trainee);
+    @InheritConfiguration(name = "toGetDto")
+    @Mapping(source = "user.username", target = "username")
+    PutTraineeDto toPutDto(Trainee trainee);
 
-    @Mapping(source = "lastName", target = "user.lastName")
-    @Mapping(source = "firstName", target = "user.firstName")
-    @Mapping(source = "isActive", target = "user.isActive")
-    @Mapping(source = "username", target = "user.username")
-    Trainee toEntity(TraineeDto traineeResDto);
-
-    @InheritInverseConfiguration(name = "toEntity")
-    TraineeDto toDto(Trainee trainee);
 }

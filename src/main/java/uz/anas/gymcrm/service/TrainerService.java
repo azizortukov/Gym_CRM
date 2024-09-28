@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.put.PutTrainerDto;
 import uz.anas.gymcrm.model.entity.Trainer;
 import uz.anas.gymcrm.model.entity.User;
 import uz.anas.gymcrm.model.entity.enums.Specialization;
@@ -93,7 +94,7 @@ public class TrainerService {
         trainerRepo.findByUserUsername(username).ifPresent(trainer -> {
             User user = trainer.getUser();
             if (user != null) {
-                user.setActive(isActive);
+                user.setIsActive(isActive);
                 userRepo.save(user);
             } else {
                 log.warn("Trainer with id: " + trainer.getId() + " user not found");
@@ -111,5 +112,27 @@ public class TrainerService {
 
     public List<Trainer> getAllTrainers() {
         return trainerRepo.findAll();
+    }
+
+    public Trainer updateTrainer(Authentication authentication, PutTrainerDto trainerDto) {
+        if (!userRepo.isAuthenticated(authentication)) {
+            log.warn("Request sent without authentication");
+            throw new RuntimeException("Request sent without authentication");
+        }
+        Optional<Trainer> trainerOptional = trainerRepo.findByUserUsername(trainerDto.username());
+        if (trainerOptional.isEmpty()) {
+            log.warn("Trainee with username %s not found for update".formatted(trainerDto.username()));
+            throw new RuntimeException("Trainee with username " + trainerDto.username() + " not found for update");
+        }
+
+        // Needed fields that can be updated are being updated
+        Trainer trainer = trainerOptional.get();
+        trainer.getUser().setFirstName(trainerDto.firstName());
+        trainer.getUser().setLastName(trainerDto.lastName());
+        trainer.getUser().setIsActive(trainerDto.isActive());
+
+        trainerRepo.save(trainer);
+        log.info("Trainee updated with id: " + trainer.getId());
+        return trainer;
     }
 }

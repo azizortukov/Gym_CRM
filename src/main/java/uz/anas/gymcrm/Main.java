@@ -7,7 +7,6 @@ import uz.anas.gymcrm.config.AppConfig;
 public class Main {
 
     public static void main(String[] args) {
-
         var context = new AnnotationConfigApplicationContext(AppConfig.class);
 
     }

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.model.dto.Authentication;
-import uz.anas.gymcrm.model.dto.TraineeDto;
+import uz.anas.gymcrm.model.dto.put.PutTraineeDto;
 import uz.anas.gymcrm.model.entity.Trainee;
 import uz.anas.gymcrm.model.entity.Trainer;
 import uz.anas.gymcrm.model.entity.User;
@@ -106,7 +106,7 @@ public class TraineeService {
     }
 
     @Transactional
-    public Trainee update(@NotNull Authentication authentication, @Valid TraineeDto traineeDto) {
+    public Trainee update(@NotNull Authentication authentication, @Valid PutTraineeDto traineeDto) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("Request sent without authentication");
@@ -116,10 +116,12 @@ public class TraineeService {
             log.warn("Trainee with username %s not found for update".formatted(traineeDto.username()));
             throw new RuntimeException("Trainee with username " + traineeDto.username() + " not found for update");
         }
+
+        // Needed fields that can be updated are being updated
         Trainee trainee = traineeOptional.get();
         trainee.getUser().setFirstName(traineeDto.firstName());
         trainee.getUser().setLastName(traineeDto.lastName());
-        trainee.getUser().setActive(traineeDto.isActive());
+        trainee.getUser().setIsActive(traineeDto.isActive());
 
         trainee.setAddress(traineeDto.address());
         trainee.setDateOfBirth(traineeDto.dateOfBirth());
@@ -138,7 +140,7 @@ public class TraineeService {
             User user = trainee.getUser();
             if (user != null) {
                 boolean currentStatus = user.getIsActive();
-                user.setActive(!currentStatus);
+                user.setIsActive(!currentStatus);
                 userRepo.save(user);
 
             } else {

@@ -31,7 +31,7 @@ public class User {
     @NotEmpty
     private String password;
     @Column(nullable = false, name = "is_active")
-    private boolean isActive;
+    private Boolean isActive;
 
     public boolean getIsActive() {
         return isActive;

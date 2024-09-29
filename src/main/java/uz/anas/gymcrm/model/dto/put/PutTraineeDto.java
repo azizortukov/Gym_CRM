@@ -1,7 +1,7 @@
 package uz.anas.gymcrm.model.dto.put;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import uz.anas.gymcrm.model.dto.TraineeTrainersDto;
+import uz.anas.gymcrm.model.dto.TrainerBaseDto;
 
 import java.io.Serializable;
 import java.sql.Date;
@@ -22,6 +22,6 @@ public record PutTraineeDto(
         @JsonProperty(required = true)
         Boolean isActive,
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-        Set<TraineeTrainersDto> trainersList
+        Set<TrainerBaseDto> trainersList
 ) implements Serializable {
 }

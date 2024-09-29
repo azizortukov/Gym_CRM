@@ -35,18 +35,8 @@ public class TrainerService {
     public void init() {
         for (String line : trainerData.split(";")) {
             String[] parts = line.split(",");
-            User user = User.builder()
-                    .firstName(parts[0])
-                    .lastName(parts[1])
-                    .username(parts[2])
-                    .password(parts[3])
-                    .isActive(Boolean.parseBoolean(parts[4]))
-                    .build();
-
-            Trainer trainer = Trainer.builder()
-                    .user(user)
-                    .specialization(Specialization.AEROBICS)
-                    .build();
+            User user = new User(parts[0], parts[1], parts[2], parts[3], Boolean.parseBoolean(parts[4]));
+            Trainer trainer = new Trainer(user, Specialization.AEROBICS);
             trainerRepo.save(trainer);
         }
     }
@@ -100,14 +90,6 @@ public class TrainerService {
                 log.warn("Trainer with id: " + trainer.getId() + " user not found");
             }
         });
-    }
-
-    public List<Trainer> getTrainersByNotAssigned(@NotNull Authentication authentication, String traineeUsername) {
-        if (!userRepo.isAuthenticated(authentication)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
-        }
-        return trainerRepo.findByTraineeUsernameNotAssigned(traineeUsername);
     }
 
     public List<Trainer> getAllTrainers() {

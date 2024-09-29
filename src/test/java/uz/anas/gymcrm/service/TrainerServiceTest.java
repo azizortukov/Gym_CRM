@@ -16,7 +16,6 @@ import uz.anas.gymcrm.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,17 +40,8 @@ class TrainerServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
-                .firstName("Tom")
-                .lastName("Anderson")
-                .isActive(true)
-                .build();
-        trainer = Trainer.builder()
-                .specialization(Specialization.CARDIO)
-                .trainees(Set.of())
-                .trainings(List.of())
-                .user(user)
-                .build();
+        user = new User("Tom", "Anderson",true);
+        trainer = new Trainer(user, Specialization.CARDIO);
         authentication = new Authentication("Tom.Anderson", "password111");
     }
 
@@ -180,31 +170,6 @@ class TrainerServiceTest {
 
         assertTrue(user.getIsActive());
         verify(userRepo, times(1)).save(user);
-    }
-
-    @Test
-    public void getTrainersByNotAssignedNotAuthenticated() {
-        when(userRepo.isAuthenticated(authentication))
-                .thenReturn(false);
-
-        assertThrows(RuntimeException.class, () -> {
-            trainerService.getTrainersByNotAssigned(authentication, "traineeUsername");
-        });
-
-        verify(trainerRepo, never()).findByTraineeUsernameNotAssigned(anyString());
-    }
-
-    @Test
-    public void getTrainersByNotAssigned() {
-        List<Trainer> trainers = List.of(new Trainer(), new Trainer());
-
-        when(userRepo.isAuthenticated(authentication)).thenReturn(true);
-        when(trainerRepo.findByTraineeUsernameNotAssigned("traineeUsername")).thenReturn(trainers);
-
-        List<Trainer> result = trainerService.getTrainersByNotAssigned(authentication, "traineeUsername");
-
-        assertEquals(2, result.size());
-        verify(trainerRepo, times(1)).findByTraineeUsernameNotAssigned("traineeUsername");
     }
 
     @Test

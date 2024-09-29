@@ -1,7 +1,7 @@
 package uz.anas.gymcrm.model.dto.get;
 
 import jakarta.validation.constraints.NotNull;
-import uz.anas.gymcrm.model.dto.TrainerTraineesDto;
+import uz.anas.gymcrm.model.dto.TraineeBaseDto;
 import uz.anas.gymcrm.model.entity.enums.Specialization;
 
 import java.io.Serializable;
@@ -12,6 +12,6 @@ import java.util.Set;
  */
 public record GetTrainerDto(
         @NotNull Specialization specialization,
-        Set<TrainerTraineesDto> traineesList
+        Set<TraineeBaseDto> traineesList
 ) implements Serializable {
 }

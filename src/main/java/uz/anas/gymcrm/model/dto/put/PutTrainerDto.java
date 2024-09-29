@@ -1,6 +1,6 @@
 package uz.anas.gymcrm.model.dto.put;
 
-import uz.anas.gymcrm.model.dto.TrainerTraineesDto;
+import uz.anas.gymcrm.model.dto.TraineeBaseDto;
 import uz.anas.gymcrm.model.entity.enums.Specialization;
 
 import java.io.Serializable;
@@ -15,5 +15,5 @@ public record PutTrainerDto(
         String lastName,
         String username,
         Boolean isActive,
-        Set<TrainerTraineesDto> traineesList) implements Serializable {
+        Set<TraineeBaseDto> traineesList) implements Serializable {
 }

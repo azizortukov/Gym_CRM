@@ -2,7 +2,7 @@ package uz.anas.gymcrm.model.dto;
 
 import java.io.Serializable;
 
-public record TrainerTraineesDto(
+public record TraineeBaseDto(
         String firstName,
         String lastName,
         String username

@@ -9,7 +9,6 @@ import java.util.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Getter
 @Setter
 @ToString
@@ -33,4 +32,8 @@ public class Trainer {
     @ToString.Exclude
     private List<Training> trainings = new ArrayList<>();
 
+    public Trainer(User user, Specialization specialization) {
+        this.user = user;
+        this.specialization = specialization;
+    }
 }

@@ -1,21 +1,26 @@
 package uz.anas.gymcrm.model.mapper;
 
 import org.mapstruct.*;
+import uz.anas.gymcrm.model.dto.TrainerBaseDto;
 import uz.anas.gymcrm.model.dto.get.GetTraineeDto;
 import uz.anas.gymcrm.model.dto.post.PostTraineeDto;
 import uz.anas.gymcrm.model.dto.put.PutTraineeDto;
 import uz.anas.gymcrm.model.entity.Trainee;
+import uz.anas.gymcrm.model.entity.Trainer;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.CDI)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TraineeMapper {
+
+    @Mapping(source = "user.firstName", target = "firstName")
+    @Mapping(source = "user.lastName", target = "lastName")
+    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "specialization", target = "specialization")
+    TrainerBaseDto toTrainerBaseDto(Trainer trainer);
 
     @InheritInverseConfiguration(name = "toGetDto")
     Trainee toEntity(GetTraineeDto getTraineeDto);
 
-    @Mapping(source = "trainers.user.firstName", target = "trainersList.firstName")
-    @Mapping(source = "trainers.user.lastName", target = "trainersList.lastName")
-    @Mapping(source = "trainers.user.username", target = "trainersList.username")
-    @Mapping(source = "trainers.specialization", target = "trainersList.specialization")
+    @Mapping(source = "trainers", target = "trainersList")
     @Mapping(source = "user.isActive", target = "isActive")
     @Mapping(source = "user.lastName", target = "lastName")
     @Mapping(source = "user.firstName", target = "firstName")
@@ -31,7 +36,6 @@ public interface TraineeMapper {
     PostTraineeDto toPostDto(Trainee trainee);
 
     @InheritInverseConfiguration(name = "toPutDto")
-    @Mapping(source = "username", target = "user.username")
     Trainee toEntity(PutTraineeDto traineeDto);
 
     @InheritConfiguration(name = "toGetDto")

@@ -7,10 +7,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.get.GetTraineeTrainingDto;
+import uz.anas.gymcrm.model.dto.get.GetTrainerTrainingDto;
+import uz.anas.gymcrm.model.dto.post.PostTrainingDto;
 import uz.anas.gymcrm.model.entity.Training;
+import uz.anas.gymcrm.model.entity.TrainingType;
+import uz.anas.gymcrm.model.mapper.TrainingMapper;
 import uz.anas.gymcrm.repository.TrainingRepository;
 import uz.anas.gymcrm.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,36 +27,58 @@ public class TrainingService {
     private final TrainingRepository trainingRepo;
     private final UserRepository userRepo;
     private final Log log = LogFactory.getLog(TrainingService.class.getName());
+    private final TrainingMapper trainingMapper;
 
-    public Training createTraining(@NotNull Authentication authentication, @Valid Training training) {
+    public void createTraining(@NotNull Authentication authentication, @Valid PostTrainingDto postTrainingDto) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }
-        return trainingRepo.save(training);
+        Training training = trainingMapper.toEntity(postTrainingDto);
+        trainingRepo.save(training);
     }
 
-    public List<Training> getTraineeTrainings(
+    public List<GetTraineeTrainingDto> getTraineeTrainings(
             @NotNull Authentication authentication , @NotNull String traineeUsername, String trainerUsername,
-            Date fromDate, Date toDate, String trainingType) {
+            Date fromDate, Date toDate, String trainingType
+    ) {
 
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
         }
-        return trainingRepo.findByTraineeAndCriteria(traineeUsername, trainerUsername, fromDate, toDate, trainingType);
+        var trainings = trainingRepo.findByTraineeAndCriteria(traineeUsername, trainerUsername, fromDate, toDate, trainingType);
+        List<GetTraineeTrainingDto> resDtos = new ArrayList<>();
+        for (Training training : trainings) {
+            resDtos.add(trainingMapper.toTraineeTrainingDto(training));
+        }
+        return resDtos;
     }
 
-    public List<Training> getTrainerTrainings(
+    public List<GetTrainerTrainingDto> getTrainerTrainings(
             @NotNull Authentication authentication , @NotNull String trainerUsername, String traineeUsername,
-            Date fromDate, Date toDate) {
-
+            Date fromDate, Date toDate
+    ) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("User is not authenticated");
 
         }
-        return trainingRepo.findByTrainerAndCriteria(trainerUsername, traineeUsername, fromDate, toDate);
+        var trainings = trainingRepo.findByTrainerAndCriteria(trainerUsername, traineeUsername, fromDate, toDate);
+        List<GetTrainerTrainingDto> resDtos = new ArrayList<>();
+        for (Training training : trainings) {
+            resDtos.add(trainingMapper.toTrainerTrainingDto(training));
+        }
+        return resDtos;
     }
 
+    public List<TrainingType> getTrainingTypes(Authentication authentication) {
+        if (!userRepo.isAuthenticated(authentication)) {
+            log.warn("Request sent without authentication");
+            throw new RuntimeException("User is not authenticated");
+
+        }
+
+        return trainingRepo.findAllTrainingTypes();
+    }
 }

@@ -53,5 +53,4 @@ public class TrainerController {
         return ResponseEntity.ok(trainerMapper.toPutDto(trainer));
     }
 
-
 }

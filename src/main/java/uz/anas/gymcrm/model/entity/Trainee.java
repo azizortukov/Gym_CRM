@@ -11,7 +11,6 @@ import java.util.*;
 @Getter
 @Setter
 @ToString
-@Builder
 @Entity
 @Table(name = "trainee")
 public class Trainee {
@@ -34,4 +33,9 @@ public class Trainee {
     @ToString.Exclude
     private List<Training> trainings = new ArrayList<>();
 
+    public Trainee(User user, Date date, String address) {
+        this.user = user;
+        this.dateOfBirth = date;
+        this.address = address;
+    }
 }

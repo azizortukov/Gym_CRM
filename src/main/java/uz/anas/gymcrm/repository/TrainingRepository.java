@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import uz.anas.gymcrm.model.entity.Training;
+import uz.anas.gymcrm.model.entity.TrainingType;
 
 import java.util.Date;
 import java.util.List;
@@ -18,7 +19,7 @@ public interface TrainingRepository extends JpaRepository<Training, UUID> {
             JOIN training_type tt ON tt.id = t.training_type_id
             JOIN trainee t2 ON t.trainee_id = t2.id
             JOIN users u ON u.id = t2.id
-            where u.username = :traineeUsername AND
+            WHERE u.username = :traineeUsername AND
             (:fromDate IS NULL OR t.training_date >= :fromDate) AND
             (:toDate IS NULL OR t.training_date <= :toDate) AND
             (:trainerFirstName IS NULL OR u.first_name ILIKE :trainerFirstName) AND
@@ -29,15 +30,18 @@ public interface TrainingRepository extends JpaRepository<Training, UUID> {
             Date fromDate, Date toDate, String trainingType);
 
     @Query(nativeQuery = true, value = """
-            select t from Training t
+            SELECT t FROM training t
             JOIN trainee t2 ON t.trainee_id = t2.id
             JOIN users u ON u.id = t2.id
-            where u.username = :trainerUsername AND
-            (:fromDate is null or t.training_date >= :fromDate) AND
-            (:toDate is null or t.training_date <= :toDate) AND
-            (:trainerFirstName is null or u.first_name ILIKE :traineeFirstName)""")
+            WHERE u.username = :trainerUsername AND
+            (:fromDate IS NULL OR t.training_date >= :fromDate) AND
+            (:toDate IS NULL OR t.training_date <= :toDate) AND
+            (:trainerFirstName IS NULL OR u.first_name ILIKE :traineeFirstName)""")
     List<Training> findByTrainerAndCriteria(
             @NotEmpty String trainerUsername, String traineeFirstName,
             Date fromDate, Date toDate);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM training_type")
+    List<TrainingType> findAllTrainingTypes();
 
 }

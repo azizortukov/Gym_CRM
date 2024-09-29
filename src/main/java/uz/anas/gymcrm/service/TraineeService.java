@@ -10,11 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.TrainerBaseDto;
 import uz.anas.gymcrm.model.dto.put.PutTraineeDto;
 import uz.anas.gymcrm.model.entity.Trainee;
 import uz.anas.gymcrm.model.entity.Trainer;
 import uz.anas.gymcrm.model.entity.User;
+import uz.anas.gymcrm.model.mapper.TraineeMapper;
 import uz.anas.gymcrm.repository.TraineeRepository;
+import uz.anas.gymcrm.repository.TrainerRepository;
 import uz.anas.gymcrm.repository.UserRepository;
 
 import java.sql.Date;
@@ -28,6 +31,8 @@ public class TraineeService {
     private final TraineeRepository traineeRepo;
     private final CredentialGenerator credentialGenerator;
     private final UserRepository userRepo;
+    private final TrainerRepository trainerRepo;
+    private final TraineeMapper traineeMapper;
     @Value("${trainee.data}")
     private String traineeData;
     private final Log log = LogFactory.getLog(TraineeService.class);
@@ -36,19 +41,8 @@ public class TraineeService {
     public void init() {
         for (String line : traineeData.split(";")) {
                 String[] parts = line.split(",");
-                User user = User.builder()
-                        .firstName(parts[0])
-                        .lastName(parts[1])
-                        .username(parts[2])
-                        .password(parts[3])
-                        .isActive(Boolean.parseBoolean(parts[4]))
-                        .build();
-
-                Trainee trainee = Trainee.builder()
-                        .user(user)
-                        .dateOfBirth(Date.valueOf(parts[5]))
-                        .address(parts[6])
-                        .build();
+                User user = new User(parts[0], parts[1], parts[2], parts[3], Boolean.parseBoolean(parts[4]));
+                Trainee trainee = new Trainee(user, Date.valueOf(parts[5]), parts[6]);
                 traineeRepo.save(trainee);
             }
     }
@@ -94,15 +88,32 @@ public class TraineeService {
 
     // For updating trainee's trainers list
     @Transactional
-    public Trainee updateTrainerList(@NotNull Authentication authentication, @Valid Trainee trainee, @NotNull Set<Trainer> trainerList) {
+    public List<TrainerBaseDto> updateTrainerList(@NotNull Authentication authentication, String traineeUsername, Set<TrainerBaseDto> trainerList) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
             throw new RuntimeException("Request sent without authentication");
         }
-        trainee.setTrainers(trainerList);
-        traineeRepo.save(trainee);
+        Optional<Trainee> traineeOptional = traineeRepo.findByUserUsername(traineeUsername);
+        // Checkpoint if trainee by given username exists
+        if (traineeOptional.isEmpty()) {
+            log.warn("Trainee with %s username is not found".formatted(traineeUsername));
+            throw new RuntimeException("Trainee with %s username is not found".formatted(traineeUsername));
+        }
+        Trainee trainee = traineeOptional.get();
+        Set<Trainer> newTrainers = new HashSet<>();
+        List<TrainerBaseDto> ansTrainersDto = new ArrayList<>();
+
+        // Setting every trainer with given username to trainee
+        for (TrainerBaseDto trainerBaseDto : trainerList) {
+            trainerRepo.findByUserUsername(trainerBaseDto.username()).ifPresent(newTrainers::add);
+        }
+        for (Trainer trainer : newTrainers) {
+            ansTrainersDto.add(traineeMapper.toTrainerBaseDto(trainer));
+        }
+
+        trainee.setTrainers(newTrainers);
         log.info("Trainee trainers list updated with id: " + trainee.getId());
-        return trainee;
+        return ansTrainersDto;
     }
 
     @Transactional
@@ -155,6 +166,14 @@ public class TraineeService {
             throw new RuntimeException("User is not authenticated");
         }
         traineeRepo.deleteByUserUsername(username);
+    }
+
+    public List<TrainerBaseDto> getTrainersByNotAssigned(@NotNull Authentication authentication, String traineeUsername) {
+        if (!userRepo.isAuthenticated(authentication)) {
+            log.warn("Request sent without authentication");
+            throw new RuntimeException("User is not authenticated");
+        }
+        return traineeRepo.findByTraineeUsernameNotAssigned(traineeUsername);
     }
 
     public List<Trainee> getAllTrainees() {

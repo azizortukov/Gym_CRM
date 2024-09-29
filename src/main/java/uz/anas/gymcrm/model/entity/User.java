@@ -11,7 +11,6 @@ import java.util.UUID;
 @Getter
 @Setter
 @ToString
-@Builder
 @Entity
 @Table(name = "users")
 public class User {
@@ -35,5 +34,19 @@ public class User {
 
     public boolean getIsActive() {
         return isActive;
+    }
+
+    public User(String firstName, String lastName, String username, String password, Boolean isActive) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.password = password;
+        this.isActive = isActive;
+    }
+
+    public User(String firstName, String lastName, Boolean isActive) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isActive = isActive;
     }
 }

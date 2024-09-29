@@ -8,10 +8,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.TrainerBaseDto;
 import uz.anas.gymcrm.model.entity.Trainee;
-import uz.anas.gymcrm.model.entity.Trainer;
 import uz.anas.gymcrm.model.entity.User;
+import uz.anas.gymcrm.model.entity.enums.Specialization;
+import uz.anas.gymcrm.model.mapper.TraineeMapper;
 import uz.anas.gymcrm.repository.TraineeRepository;
+import uz.anas.gymcrm.repository.TrainerRepository;
 import uz.anas.gymcrm.repository.UserRepository;
 
 import java.sql.Date;
@@ -31,27 +34,22 @@ class TraineeServiceTest {
     UserRepository userRepo;
     @Mock
     CredentialGenerator credentialGenerator;
+    @Mock
+    TrainerRepository trainerRepo;
+    @Mock
+    TraineeMapper traineeMapper;
 
     @InjectMocks
     TraineeService traineeService;
     Trainee trainee;
     User user;
-    Authentication authentication;
+    Authentication auth;
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
-                .firstName("Tom")
-                .lastName("Anderson")
-                .isActive(true)
-                .build();
-
-        trainee = Trainee.builder()
-                .dateOfBirth(Date.valueOf(LocalDate.of(2001, 3, 13)))
-                .address("Some address")
-                .user(user)
-                .build();
-        authentication = new Authentication("Tom.Anderson", "password111");
+        user = new User("Tom", "Anderson", true);
+        trainee = new Trainee(user, Date.valueOf(LocalDate.of(2001, 3, 13)),"Some address");
+        auth = new Authentication("Tom.Anderson", "password111");
     }
 
     @Test
@@ -91,7 +89,7 @@ class TraineeServiceTest {
     void getByUsernameNotAuthenticated() {
         when(userRepo.isAuthenticated(any(Authentication.class)))
                 .thenReturn(false);
-        assertThrows(RuntimeException.class, () -> traineeService.getByUsername(authentication, "jsjda"));
+        assertThrows(RuntimeException.class, () -> traineeService.getByUsername(auth, "jsjda"));
     }
 
     @Test
@@ -101,7 +99,7 @@ class TraineeServiceTest {
         when(traineeRepo.findByUserUsername(anyString()))
                 .thenReturn(Optional.of(trainee));
 
-        Optional<Trainee> traineeOptional = traineeService.getByUsername(authentication, "Tom.Anderson");
+        Optional<Trainee> traineeOptional = traineeService.getByUsername(auth, "Tom.Anderson");
         assertTrue(traineeOptional.isPresent());
         assertEquals(trainee, traineeOptional.get());
     }
@@ -111,7 +109,7 @@ class TraineeServiceTest {
         when(userRepo.isAuthenticated(any(Authentication.class)))
                 .thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> traineeService.changePasswordByUsername(authentication, "Tom.Anderson", "Tom"));
+        assertThrows(RuntimeException.class, () -> traineeService.changePasswordByUsername(auth, "Tom.Anderson", "Tom"));
     }
 
     @Test
@@ -124,7 +122,7 @@ class TraineeServiceTest {
         when(traineeRepo.findByUserUsername(anyString()))
                 .thenReturn(Optional.of(trainee));
 
-        traineeService.changePasswordByUsername(authentication, username, newPassword);
+        traineeService.changePasswordByUsername(auth, username, newPassword);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepo).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
@@ -133,22 +131,9 @@ class TraineeServiceTest {
 
     @Test
     void updateTrainerListNotAuthenticated() {
-        when(userRepo.isAuthenticated(authentication))
+        when(userRepo.isAuthenticated(auth))
                 .thenReturn(false);
-        assertThrows(RuntimeException.class, () -> traineeService.changePasswordByUsername(authentication, "Tom.Anderson", "Tom"));
-    }
-
-    @Test
-    void updateTrainerList() {
-        Set<Trainer> trainers = new HashSet<>();
-        trainers.add(new Trainer());
-
-        when(userRepo.isAuthenticated(authentication)).thenReturn(true);
-        when(traineeRepo.save(trainee)).thenReturn(trainee);
-
-        Trainee updatedTrainee = traineeService.updateTrainerList(authentication, trainee, trainers);
-        verify(traineeRepo).save(trainee);
-        assertEquals(trainers, updatedTrainee.getTrainers());
+        assertThrows(RuntimeException.class, () -> traineeService.changePasswordByUsername(auth, "Tom.Anderson", "Tom"));
     }
 
     @Test
@@ -156,7 +141,7 @@ class TraineeServiceTest {
         when(userRepo.isAuthenticated(any(Authentication.class)))
                 .thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> traineeService.activateTraineeByUsername(authentication, "Tom"));
+        assertThrows(RuntimeException.class, () -> traineeService.activateTraineeByUsername(auth, "Tom"));
         verify(traineeRepo, never()).findByUserUsername(anyString());
         verify(userRepo, never()).save(any(User.class));
     }
@@ -165,11 +150,11 @@ class TraineeServiceTest {
     void activateTraineeByUsername() {
         String username = "testuser";
 
-        when(userRepo.isAuthenticated(authentication)).thenReturn(true);
+        when(userRepo.isAuthenticated(auth)).thenReturn(true);
         when(traineeRepo.findByUserUsername(username)).thenReturn(Optional.of(trainee));
 
         boolean initialStatus = user.getIsActive();
-        traineeService.activateTraineeByUsername(authentication, username);
+        traineeService.activateTraineeByUsername(auth, username);
         verify(userRepo).save(user);
         assertEquals(!initialStatus, user.getIsActive());
     }
@@ -179,16 +164,16 @@ class TraineeServiceTest {
         when(userRepo.isAuthenticated(any(Authentication.class)))
                 .thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> traineeService.deleteByUsername(authentication, "Tom"));
+        assertThrows(RuntimeException.class, () -> traineeService.deleteByUsername(auth, "Tom"));
         verify(traineeRepo, never()).deleteByUserUsername(anyString());
     }
 
     @Test
     void deleteByUsername() {
         String username = "testuser";
-        when(userRepo.isAuthenticated(authentication)).thenReturn(true);
+        when(userRepo.isAuthenticated(auth)).thenReturn(true);
 
-        traineeService.deleteByUsername(authentication, username);
+        traineeService.deleteByUsername(auth, username);
         verify(traineeRepo).deleteByUserUsername(username);
     }
 
@@ -199,5 +184,32 @@ class TraineeServiceTest {
 
         List<Trainee> actualTrainees = traineeService.getAllTrainees();
         assertEquals(expectedTrainees, actualTrainees);
+    }
+
+    @Test
+    public void getTrainersByNotAssignedNotAuthenticated() {
+        when(userRepo.isAuthenticated(auth))
+                .thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> {
+            traineeService.getTrainersByNotAssigned(auth, "traineeUsername");
+        });
+
+        verify(traineeRepo, never()).findByTraineeUsernameNotAssigned(anyString());
+    }
+
+    @Test
+    public void getTrainersByNotAssigned() {
+        List<TrainerBaseDto> trainers = List.of(
+                new TrainerBaseDto("", "", "", Specialization.CARDIO)
+        );
+
+        when(userRepo.isAuthenticated(auth)).thenReturn(true);
+        when(traineeRepo.findByTraineeUsernameNotAssigned("traineeUsername")).thenReturn(trainers);
+
+        List<TrainerBaseDto> result = traineeService.getTrainersByNotAssigned(auth, "traineeUsername");
+
+        assertEquals(1, result.size());
+        verify(traineeRepo, times(1)).findByTraineeUsernameNotAssigned("traineeUsername");
     }
 }

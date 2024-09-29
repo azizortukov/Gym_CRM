@@ -1,7 +1,7 @@
 package uz.anas.gymcrm.model.dto.get;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import uz.anas.gymcrm.model.dto.TraineeTrainersDto;
+import uz.anas.gymcrm.model.dto.TrainerBaseDto;
 import uz.anas.gymcrm.model.entity.Trainee;
 
 import java.io.Serializable;
@@ -18,6 +18,6 @@ public record GetTraineeDto(
         String lastName,
         boolean isActive,
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-        Set<TraineeTrainersDto> trainersList
+        Set<TrainerBaseDto> trainersList
 ) implements Serializable {
 }

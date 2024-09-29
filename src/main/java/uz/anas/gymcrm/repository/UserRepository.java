@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             WHERE username = :#{#auth.username} AND password = :#{#auth.password}""")
     boolean isAuthenticated(Authentication auth);
 
+    boolean existsByUsernameAndPassword(String username, String password);
+
 }

@@ -10,7 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.ResponseDto;
 import uz.anas.gymcrm.model.dto.TrainerBaseDto;
+import uz.anas.gymcrm.model.dto.get.GetTraineeDto;
+import uz.anas.gymcrm.model.dto.patch.TraineeActivationDto;
+import uz.anas.gymcrm.model.dto.post.PostTraineeDto;
 import uz.anas.gymcrm.model.dto.put.PutTraineeDto;
 import uz.anas.gymcrm.model.entity.Trainee;
 import uz.anas.gymcrm.model.entity.Trainer;
@@ -48,7 +52,8 @@ public class TraineeService {
     }
 
     @Transactional
-    public Trainee create(@Valid Trainee trainee) {
+    public ResponseDto<PostTraineeDto> create(@Valid PostTraineeDto postTraineeDto) {
+        Trainee trainee = traineeMapper.toEntity(postTraineeDto);
         String username = trainee.getUser().getFirstName() + "." + trainee.getUser().getLastName();
         if (userRepo.existsByUsername(username)) {
             username = credentialGenerator.genUsername(username);
@@ -56,48 +61,38 @@ public class TraineeService {
         trainee.getUser().setUsername(username);
         trainee.getUser().setPassword(credentialGenerator.genPassword());
 
-        Trainee savedTrainee = traineeRepo.save(trainee);
-        log.info("Trainee saved with id: " + savedTrainee.getId());
-        return savedTrainee;
+        traineeRepo.save(trainee);
+        log.info("Trainee saved with id: " + trainee.getId());
+        return new ResponseDto<>(traineeMapper.toPostDto(trainee));
     }
 
-    public Optional<Trainee> getByUsername(@NotNull Authentication authentication, String username) {
+    public ResponseDto<GetTraineeDto> getByUsername(@NotNull Authentication authentication, String username) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("Request sent without authentication");
+            return new ResponseDto<>("Request sent without authentication");
         }
-        return traineeRepo.findByUserUsername(username);
-    }
-
-    @Transactional
-    public void changePasswordByUsername(@NotNull Authentication authentication, String username, String newPassword) {
-        if (!userRepo.isAuthenticated(authentication)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("Request sent without authentication");
+        Optional<Trainee> trainee = traineeRepo.findByUserUsername(username);
+        if (trainee.isPresent()) {
+            GetTraineeDto traineeDto = traineeMapper.toGetDto(trainee.get());
+            return new ResponseDto<>(traineeDto);
+        } else {
+            log.warn("Trainee not found for username " + username);
+            return new ResponseDto<>("Trainee is not found");
         }
-        traineeRepo.findByUserUsername(username).ifPresent(trainee -> {
-            User user = trainee.getUser();
-            if (user != null) {
-                user.setPassword(newPassword);
-                userRepo.save(user);
-            } else {
-                log.warn("Trainee with id: " + trainee.getId() + " user not found");
-            }
-        });
     }
 
     // For updating trainee's trainers list
     @Transactional
-    public List<TrainerBaseDto> updateTrainerList(@NotNull Authentication authentication, String traineeUsername, Set<TrainerBaseDto> trainerList) {
+    public ResponseDto<List<TrainerBaseDto>> updateTrainerList(@NotNull Authentication authentication, String traineeUsername, Set<TrainerBaseDto> trainerList) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("Request sent without authentication");
+            return new ResponseDto<>("Request sent without authentication");
         }
         Optional<Trainee> traineeOptional = traineeRepo.findByUserUsername(traineeUsername);
         // Checkpoint if trainee by given username exists
         if (traineeOptional.isEmpty()) {
             log.warn("Trainee with %s username is not found".formatted(traineeUsername));
-            throw new RuntimeException("Trainee with %s username is not found".formatted(traineeUsername));
+            return new ResponseDto<>("Trainee with %s username is not found".formatted(traineeUsername));
         }
         Trainee trainee = traineeOptional.get();
         Set<Trainer> newTrainers = new HashSet<>();
@@ -113,19 +108,19 @@ public class TraineeService {
 
         trainee.setTrainers(newTrainers);
         log.info("Trainee trainers list updated with id: " + trainee.getId());
-        return ansTrainersDto;
+        return new ResponseDto<>(ansTrainersDto);
     }
 
     @Transactional
-    public Trainee update(@NotNull Authentication authentication, @Valid PutTraineeDto traineeDto) {
+    public ResponseDto<PutTraineeDto> update(@NotNull Authentication authentication, @Valid PutTraineeDto traineeDto) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("Request sent without authentication");
+            return new ResponseDto<>("Request sent without authentication");
         }
         Optional<Trainee> traineeOptional = traineeRepo.findByUserUsername(traineeDto.username());
         if (traineeOptional.isEmpty()) {
             log.warn("Trainee with username %s not found for update".formatted(traineeDto.username()));
-            throw new RuntimeException("Trainee with username " + traineeDto.username() + " not found for update");
+            return new ResponseDto<>("Trainee with username %s not found".formatted(traineeDto.username()));
         }
 
         // Needed fields that can be updated are being updated
@@ -139,41 +134,42 @@ public class TraineeService {
 
         traineeRepo.save(trainee);
         log.info("Trainee updated with id: " + trainee.getId());
-        return trainee;
+        return new ResponseDto<>(traineeMapper.toPutDto(trainee));
     }
 
-    public void activateTraineeByUsername(@NotNull Authentication authentication, String username) {
+    public ResponseDto<?> activateTraineeByUsername(@NotNull Authentication authentication, TraineeActivationDto activationDto) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
-        traineeRepo.findByUserUsername(username).ifPresent(trainee -> {
+        traineeRepo.findByUserUsername(activationDto.username()).ifPresent(trainee -> {
             User user = trainee.getUser();
             if (user != null) {
-                boolean currentStatus = user.getIsActive();
-                user.setIsActive(!currentStatus);
+                user.setIsActive(activationDto.isActive());
                 userRepo.save(user);
-
             } else {
                 log.warn("Trainee with id: " + trainee.getId() + " user not found");
             }
         });
+        return new ResponseDto<>();
     }
 
-    public void deleteByUsername(@NotNull Authentication authentication, String username) {
+    public ResponseDto<?> deleteByUsername(@NotNull Authentication authentication, String username) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
         traineeRepo.deleteByUserUsername(username);
+        return new ResponseDto<>();
     }
 
-    public List<TrainerBaseDto> getTrainersByNotAssigned(@NotNull Authentication authentication, String traineeUsername) {
+    public ResponseDto<List<TrainerBaseDto>> getTrainersByNotAssigned(@NotNull Authentication authentication, String traineeUsername) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
-        return traineeRepo.findByTraineeUsernameNotAssigned(traineeUsername);
+        var ansDto = traineeRepo.findByTraineeUsernameNotAssigned(traineeUsername);
+        return new ResponseDto<>(ansDto);
     }
 
     public List<Trainee> getAllTrainees() {

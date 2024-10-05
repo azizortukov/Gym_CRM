@@ -1,13 +1,13 @@
 package uz.anas.gymcrm;
 
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import uz.anas.gymcrm.config.AppConfig;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@SpringBootApplication
 public class Main {
 
     public static void main(String[] args) {
-        var context = new AnnotationConfigApplicationContext(AppConfig.class);
-
+        SpringApplication.run(Main.class, args);
     }
 }

@@ -4,8 +4,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.model.dto.Authentication;
@@ -26,12 +25,12 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TrainerService {
 
     private final TrainerRepository trainerRepo;
     private final CredentialGenerator credentialGenerator;
     private final UserRepository userRepo;
-    private final Log log = LogFactory.getLog(TrainerService.class);
     private final TrainerMapper trainerMapper;
     @Value("${trainer.data}")
     private String trainerData;
@@ -61,14 +60,14 @@ public class TrainerService {
     public ResponseDto<GetTrainerDto> getTrainerByUsername(@NotNull Authentication authentication, String username) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
         Optional<Trainer> trainer = trainerRepo.findByUserUsername(username);
         if (trainer.isPresent()) {
             GetTrainerDto trainerDt0 = trainerMapper.toGetDto(trainer.get());
             return new ResponseDto<>(trainerDt0);
         } else {
-            log.warn("Trainer not found for username " + username);
+            log.warn("Trainer not found for username {}", username);
             return new ResponseDto<>("Trainer is not found");
         }
     }
@@ -84,7 +83,7 @@ public class TrainerService {
                 user.setIsActive(activationDto.isActive());
                 userRepo.save(user);
             } else {
-                log.warn("Trainer with id: " + trainer.getId() + " user not found");
+                log.warn("Trainer with id: {} user not found", trainer.getId());
             }
         });
         return new ResponseDto<>();
@@ -93,11 +92,11 @@ public class TrainerService {
     public ResponseDto<PutTrainerDto> updateTrainer(Authentication authentication, PutTrainerDto trainerDto) {
         if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            return new ResponseDto<>("Request sent without authentication");
+            return new ResponseDto<>("User is not authenticated");
         }
         Optional<Trainer> trainerOptional = trainerRepo.findByUserUsername(trainerDto.username());
         if (trainerOptional.isEmpty()) {
-            log.warn("Trainee with username %s not found for update".formatted(trainerDto.username()));
+            log.warn("Trainee with username {} not found for update", trainerDto.username());
             return new ResponseDto<>("Trainee with username " + trainerDto.username() + " not found for update");
         }
 

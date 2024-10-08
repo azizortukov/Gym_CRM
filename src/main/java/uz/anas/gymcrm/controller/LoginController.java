@@ -8,8 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import uz.anas.gymcrm.model.dto.Authentication;
 import uz.anas.gymcrm.model.dto.ResponseDto;
@@ -19,11 +18,11 @@ import uz.anas.gymcrm.repository.UserRepository;
 @RequestMapping("/api/v1/login")
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Login APIs", description = "For checking login details and changing password")
 public class LoginController {
 
     private final UserRepository userRepo;
-    private final Log log = LogFactory.getLog(LoginController.class);
 
 
     @Operation(summary = "Checking login details")
@@ -35,7 +34,7 @@ public class LoginController {
     @GetMapping
     public ResponseDto<?> login(@RequestBody Authentication auth) {
         if (!userRepo.existsByUsernameAndPassword(auth.username(), auth.password())) {
-            log.warn("User details entered wrong. username: %s   password: %s".formatted(auth.username(), auth.password()));
+            log.warn("User details entered wrong. username: {}   password: {}", auth.username(), auth.password());
             return new ResponseDto<>("User details are incorrect");
         }
         return new ResponseDto<>();
@@ -50,8 +49,8 @@ public class LoginController {
     @PutMapping
     public ResponseDto<?> changePassword(@RequestBody PutLoginDetailsDto detailsDto) {
         if (!userRepo.existsByUsernameAndPassword(detailsDto.username(), detailsDto.oldPassword())) {
-            log.warn("User entered wrong details for password change. username: %s   password: %s"
-                    .formatted(detailsDto.username(), detailsDto.oldPassword()));
+            log.warn("User entered wrong details for password change. username: {}   password: {}",
+                    detailsDto.username(), detailsDto.oldPassword());
             return new ResponseDto<>("User details are incorrect");
         }
         return new ResponseDto<>();

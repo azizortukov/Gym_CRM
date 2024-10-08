@@ -3,8 +3,7 @@ package uz.anas.gymcrm.service;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uz.anas.gymcrm.model.dto.Authentication;
 import uz.anas.gymcrm.model.dto.ResponseDto;
@@ -23,11 +22,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TrainingService {
 
     private final TrainingRepository trainingRepo;
     private final UserRepository userRepo;
-    private final Log log = LogFactory.getLog(TrainingService.class.getName());
     private final TrainingMapper trainingMapper;
 
     public ResponseDto<?> createTraining(@NotNull Authentication authentication, @Valid PostTrainingDto postTrainingDto) {
@@ -83,4 +82,5 @@ public class TrainingService {
 
         return new ResponseDto<>(trainingRepo.findAllTrainingTypes());
     }
+
 }

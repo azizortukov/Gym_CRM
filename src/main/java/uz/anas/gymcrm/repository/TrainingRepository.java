@@ -22,11 +22,11 @@ public interface TrainingRepository extends JpaRepository<Training, UUID> {
             WHERE u.username = :traineeUsername AND
             (:fromDate IS NULL OR t.training_date >= :fromDate) AND
             (:toDate IS NULL OR t.training_date <= :toDate) AND
-            (:trainerFirstName IS NULL OR u.first_name ILIKE :trainerFirstName) AND
+            (:trainerFirstName IS NULL OR u.first_name ILIKE :trainerName OR u.last_name ILIKE :trainerName) AND
             (:trainingType IS NULL OR tt.training_type_name = :trainingType)
             """)
     List<Training> findByTraineeAndCriteria(
-            @NotEmpty String traineeUsername, String trainerFirstName,
+            @NotEmpty String traineeUsername, String trainerName,
             Date fromDate, Date toDate, String trainingType);
 
     @Query(nativeQuery = true, value = """
@@ -36,7 +36,7 @@ public interface TrainingRepository extends JpaRepository<Training, UUID> {
             WHERE u.username = :trainerUsername AND
             (:fromDate IS NULL OR t.training_date >= :fromDate) AND
             (:toDate IS NULL OR t.training_date <= :toDate) AND
-            (:trainerFirstName IS NULL OR u.first_name ILIKE :traineeFirstName)""")
+            (:traineeFirstName IS NULL OR u.first_name ILIKE :traineeFirstName)""")
     List<Training> findByTrainerAndCriteria(
             @NotEmpty String trainerUsername, String traineeFirstName,
             Date fromDate, Date toDate);

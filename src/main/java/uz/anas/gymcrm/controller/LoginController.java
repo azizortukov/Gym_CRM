@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.anas.gymcrm.model.dto.Authentication;
 import uz.anas.gymcrm.model.dto.ResponseDto;
 import uz.anas.gymcrm.model.dto.put.PutLoginDetailsDto;
-import uz.anas.gymcrm.repository.UserRepository;
+import uz.anas.gymcrm.service.CredentialService;
 
 @RequestMapping("/api/v1/login")
 @RestController
@@ -22,7 +22,7 @@ import uz.anas.gymcrm.repository.UserRepository;
 @Tag(name = "Login APIs", description = "For checking login details and changing password")
 public class LoginController {
 
-    private final UserRepository userRepo;
+    private final CredentialService credentialService;
 
 
     @Operation(summary = "Checking login details")
@@ -32,12 +32,9 @@ public class LoginController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseDto.class)))
     })
     @GetMapping
-    public ResponseDto<?> login(@RequestBody Authentication auth) {
-        if (!userRepo.existsByUsernameAndPassword(auth.username(), auth.password())) {
-            log.warn("User details entered wrong. username: {}   password: {}", auth.username(), auth.password());
-            return new ResponseDto<>("User details are incorrect");
-        }
-        return new ResponseDto<>();
+    public ResponseDto<?> login(@RequestParam(name = "username") String username, @RequestParam(name = "password") String password) {
+        var auth = new Authentication(username, password);
+        return credentialService.login(auth);
     }
 
     @Operation(summary = "Updating user password")
@@ -48,12 +45,7 @@ public class LoginController {
     })
     @PutMapping
     public ResponseDto<?> changePassword(@RequestBody PutLoginDetailsDto detailsDto) {
-        if (!userRepo.existsByUsernameAndPassword(detailsDto.username(), detailsDto.oldPassword())) {
-            log.warn("User entered wrong details for password change. username: {}   password: {}",
-                    detailsDto.username(), detailsDto.oldPassword());
-            return new ResponseDto<>("User details are incorrect");
-        }
-        return new ResponseDto<>();
+        return credentialService.updatePassword(detailsDto);
     }
 
 }

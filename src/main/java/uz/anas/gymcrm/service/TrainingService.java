@@ -40,7 +40,7 @@ public class TrainingService {
     }
 
     public ResponseDto<List<GetTraineeTrainingDto>> getTraineeTrainings(
-            @NotNull Authentication authentication , @NotNull String traineeUsername, String trainerUsername,
+            @NotNull Authentication authentication , @NotNull String traineeUsername, String trainerName,
             Date fromDate, Date toDate, String trainingType
     ) {
 
@@ -48,7 +48,7 @@ public class TrainingService {
             log.warn("Request sent without authentication");
             return new ResponseDto<>("User is not authenticated");
         }
-        var trainings = trainingRepo.findByTraineeAndCriteria(traineeUsername, trainerUsername, fromDate, toDate, trainingType);
+        var trainings = trainingRepo.findByTraineeAndCriteria(traineeUsername, trainerName, fromDate, toDate, trainingType);
         List<GetTraineeTrainingDto> resDtos = new ArrayList<>();
         for (Training training : trainings) {
             resDtos.add(trainingMapper.toTraineeTrainingDto(training));

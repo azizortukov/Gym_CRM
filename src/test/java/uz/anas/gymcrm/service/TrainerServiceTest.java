@@ -35,7 +35,7 @@ class TrainerServiceTest {
     @Mock
     TrainerRepository trainerRepo;
     @Mock
-    CredentialGenerator credentialGenerator;
+    CredentialService credentialService;
     @Mock
     UserRepository userRepo;
     @Mock
@@ -60,9 +60,9 @@ class TrainerServiceTest {
                 .thenReturn(trainer);
         when(userRepo.existsByUsername(anyString()))
                 .thenReturn(true);
-        when(credentialGenerator.genUsername(anyString()))
+        when(credentialService.genUsername(anyString()))
                 .thenReturn("John.Doe.1");
-        when(credentialGenerator.genPassword())
+        when(credentialService.genPassword())
                 .thenReturn("generatedPassword");
         when(trainerRepo.save(trainer))
                 .thenReturn(trainer);

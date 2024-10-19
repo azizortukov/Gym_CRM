@@ -39,7 +39,7 @@ class TraineeServiceTest {
     @Mock
     TraineeRepository traineeRepo;
     @Mock
-    CredentialGenerator credentialGenerator;
+    CredentialService credentialService;
     @Mock
     UserRepository userRepo;
     @Mock
@@ -79,9 +79,9 @@ class TraineeServiceTest {
                 .thenReturn(trainee);
         when(userRepo.existsByUsername(anyString()))
                 .thenReturn(true);
-        when(credentialGenerator.genUsername(anyString()))
+        when(credentialService.genUsername(anyString()))
                 .thenReturn(newUsername);
-        when(credentialGenerator.genPassword())
+        when(credentialService.genPassword())
                 .thenReturn(generatedPassword);
 
         ResponseDto<PostTraineeDto> response = traineeService.create(postTraineeDto);
@@ -90,7 +90,7 @@ class TraineeServiceTest {
         assertEquals(newUsername, trainee.getUser().getUsername());
         assertEquals(generatedPassword, trainee.getUser().getPassword());
         verify(userRepo, times(1)).existsByUsername(existingUsername);
-        verify(credentialGenerator, times(1)).genUsername(existingUsername);
+        verify(credentialService, times(1)).genUsername(existingUsername);
         verify(traineeRepo, times(1)).save(trainee);
     }
 
@@ -105,7 +105,7 @@ class TraineeServiceTest {
                 .thenReturn(trainee);
         when(userRepo.existsByUsername(anyString()))
                 .thenReturn(false);
-        when(credentialGenerator.genPassword())
+        when(credentialService.genPassword())
                 .thenReturn(generatedPassword);
 
         ResponseDto<PostTraineeDto> response = traineeService.create(postTraineeDto);

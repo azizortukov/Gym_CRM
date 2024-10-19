@@ -29,7 +29,7 @@ import java.util.Optional;
 public class TrainerService {
 
     private final TrainerRepository trainerRepo;
-    private final CredentialGenerator credentialGenerator;
+    private final CredentialService credentialService;
     private final UserRepository userRepo;
     private final TrainerMapper trainerMapper;
     @Value("${trainer.data}")
@@ -49,10 +49,10 @@ public class TrainerService {
         Trainer trainer = trainerMapper.toEntity(trainerDto);
         String username = trainer.getUser().getFirstName() + "." + trainer.getUser().getLastName();
         if (userRepo.existsByUsername(username)) {
-            username = credentialGenerator.genUsername(username);
+            username = credentialService.genUsername(username);
         }
         trainer.getUser().setUsername(username);
-        trainer.getUser().setPassword(credentialGenerator.genPassword());
+        trainer.getUser().setPassword(credentialService.genPassword());
         Trainer savedTrainer = trainerRepo.save(trainer);
         return new ResponseDto<>(trainerMapper.toPostDto(savedTrainer));
     }

@@ -31,7 +31,7 @@ import java.util.*;
 public class TraineeService {
 
     private final TraineeRepository traineeRepo;
-    private final CredentialGenerator credentialGenerator;
+    private final CredentialService credentialService;
     private final UserRepository userRepo;
     private final TrainerRepository trainerRepo;
     private final TraineeMapper traineeMapper;
@@ -51,10 +51,10 @@ public class TraineeService {
         Trainee trainee = traineeMapper.toEntity(postTraineeDto);
         String username = trainee.getUser().getFirstName() + "." + trainee.getUser().getLastName();
         if (userRepo.existsByUsername(username)) {
-            username = credentialGenerator.genUsername(username);
+            username = credentialService.genUsername(username);
         }
         trainee.getUser().setUsername(username);
-        trainee.getUser().setPassword(credentialGenerator.genPassword());
+        trainee.getUser().setPassword(credentialService.genPassword());
 
         traineeRepo.save(trainee);
         log.info("Trainee saved with id: " + trainee.getId());

@@ -1,127 +1,114 @@
 package uz.anas.gymcrm.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import uz.anas.gymcrm.entity.Trainer;
-import uz.anas.gymcrm.entity.User;
-import uz.anas.gymcrm.entity.enums.Specialization;
-import uz.anas.gymcrm.repo.TrainerRepo;
-import uz.anas.gymcrm.repo.UserRepo;
+import uz.anas.gymcrm.model.dto.Authentication;
+import uz.anas.gymcrm.model.dto.ResponseDto;
+import uz.anas.gymcrm.model.dto.get.GetTrainerDto;
+import uz.anas.gymcrm.model.dto.patch.TraineeActivationDto;
+import uz.anas.gymcrm.model.dto.post.PostTrainerDto;
+import uz.anas.gymcrm.model.dto.put.PutTrainerDto;
+import uz.anas.gymcrm.model.entity.Trainer;
+import uz.anas.gymcrm.model.entity.User;
+import uz.anas.gymcrm.model.entity.enums.Specialization;
+import uz.anas.gymcrm.model.mapper.TrainerMapper;
+import uz.anas.gymcrm.repository.TrainerRepository;
+import uz.anas.gymcrm.repository.UserRepository;
 
-import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TrainerService {
 
-    private final TrainerRepo trainerRepo;
-    private final CredentialGenerator credentialGenerator;
-    private final UserRepo userRepo;
-    private final Log log = LogFactory.getLog(TrainerService.class);
+    private final TrainerRepository trainerRepo;
+    private final CredentialService credentialService;
+    private final UserRepository userRepo;
+    private final TrainerMapper trainerMapper;
+    @Value("${trainer.data}")
+    private String trainerData;
 
     @PostConstruct
     public void init() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(Paths.get("src/main/resources/trainer-data.csv").toFile()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                User user = User.builder()
-                        .firstName(parts[0])
-                        .lastName(parts[1])
-                        .username(parts[2])
-                        .password(parts[3])
-                        .isActive(Boolean.parseBoolean(parts[4]))
-                        .build();
-
-                Trainer trainer = Trainer.builder()
-                        .user(user)
-                        .specialization(Specialization.AEROBICS)
-                        .build();
-                trainerRepo.save(trainer);
-            }
-        } catch (IOException e) {
-            log.warn(e.getMessage());
+        for (String line : trainerData.split(";")) {
+            String[] parts = line.split(",");
+            User user = new User(parts[0], parts[1], parts[2], parts[3], Boolean.parseBoolean(parts[4]));
+            Trainer trainer = new Trainer(user, Specialization.AEROBICS);
+            trainerRepo.save(trainer);
         }
     }
 
-    public Trainer createTrainer(@Valid Trainer trainer) {
+    public ResponseDto<PostTrainerDto> createTrainer(@Valid PostTrainerDto trainerDto) {
+        Trainer trainer = trainerMapper.toEntity(trainerDto);
         String username = trainer.getUser().getFirstName() + "." + trainer.getUser().getLastName();
         if (userRepo.existsByUsername(username)) {
-            username = credentialGenerator.genUsername(username);
+            username = credentialService.genUsername(username);
         }
         trainer.getUser().setUsername(username);
-        trainer.getUser().setPassword(credentialGenerator.genPassword());
-        return trainerRepo.save(trainer);
+        trainer.getUser().setPassword(credentialService.genPassword());
+        Trainer savedTrainer = trainerRepo.save(trainer);
+        return new ResponseDto<>(trainerMapper.toPostDto(savedTrainer));
     }
 
-    public Optional<Trainer> getTrainerByUsername(@NotNull User authentication, String username) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
+    public ResponseDto<GetTrainerDto> getTrainerByUsername(@NotNull Authentication authentication, String username) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
-        return trainerRepo.findByUsername(username);
+        Optional<Trainer> trainer = trainerRepo.findByUserUsername(username);
+        if (trainer.isPresent()) {
+            GetTrainerDto trainerDt0 = trainerMapper.toGetDto(trainer.get());
+            return new ResponseDto<>(trainerDt0);
+        } else {
+            log.warn("Trainer not found for username {}", username);
+            return new ResponseDto<>("Trainer is not found");
+        }
     }
 
-    public void changePasswordByUsername(@NotNull User authentication, String username, String newPassword) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
+    public ResponseDto<?> activateTrainerByUsername(@NotNull Authentication authentication, TraineeActivationDto activationDto) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
-        trainerRepo.findByUsername(username).ifPresent(trainer -> {
+        trainerRepo.findByUserUsername(activationDto.username()).ifPresent(trainer -> {
             User user = trainer.getUser();
             if (user != null) {
-                user.setPassword(newPassword);
+                user.setIsActive(activationDto.isActive());
                 userRepo.save(user);
             } else {
-                log.warn("Trainer with id: " + trainer.getId() + " user not found");
+                log.warn("Trainer with id: {} user not found", trainer.getId());
             }
         });
+        return new ResponseDto<>();
     }
 
-    @Transactional
-    public Trainer updateTrainer(@NotNull User user, @Valid Trainer trainer) {
-        if (!trainerRepo.isAuthenticated(user)) {
+    public ResponseDto<PutTrainerDto> updateTrainer(Authentication authentication, PutTrainerDto trainerDto) {
+        if (!userRepo.isAuthenticated(authentication)) {
             log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
+            return new ResponseDto<>("User is not authenticated");
         }
+        Optional<Trainer> trainerOptional = trainerRepo.findByUserUsername(trainerDto.username());
+        if (trainerOptional.isEmpty()) {
+            log.warn("Trainee with username {} not found for update", trainerDto.username());
+            return new ResponseDto<>("Trainee with username " + trainerDto.username() + " not found for update");
+        }
+
+        // Needed fields that can be updated are being updated
+        Trainer trainer = trainerOptional.get();
+        trainer.getUser().setFirstName(trainerDto.firstName());
+        trainer.getUser().setLastName(trainerDto.lastName());
+        trainer.getUser().setIsActive(trainerDto.isActive());
 
         trainerRepo.save(trainer);
-        return trainer;
-    }
-
-    public void activateTraineeByUsername(@NotNull User authentication, String username, boolean isActive) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
-        }
-        trainerRepo.findByUsername(username).ifPresent(trainer -> {
-            User user = trainer.getUser();
-            if (user != null) {
-                user.setActive(isActive);
-                userRepo.save(user);
-            } else {
-                log.warn("Trainer with id: " + trainer.getId() + " user not found");
-            }
-        });
-    }
-
-    public List<Trainer> getTrainersByNotAssigned(@NotNull User authentication, String traineeUsername) {
-        if (!trainerRepo.isAuthenticated(authentication)) {
-            log.warn("Request sent without authentication");
-            throw new RuntimeException("User is not authenticated");
-        }
-        return trainerRepo.findByTraineeUsernameNotAssigned(traineeUsername);
+        log.info("Trainee updated with id: " + trainer.getId());
+        return new ResponseDto<>(trainerMapper.toPutDto(trainer));
     }
 
     public List<Trainer> getAllTrainers() {
